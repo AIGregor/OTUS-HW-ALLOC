@@ -5,12 +5,8 @@
 - добавить новый элемент и обойти контейнер в одном направлении.
 Совместимость с контейнерами stl на усмотрение автора.
 */
-
 #include "stdafx.h"
 #include <memory>
-#include <typeinfo>
-
-using namespace std;
 
 template <typename T, typename alloc = my_list_alloc<T>>
 class my_list
@@ -30,6 +26,11 @@ private:
 	T value;
 	alloc my_list_allocator;
 };
+
+static bool has_initialized = false;
+//static size_t blockCount = 0;
+//static void* last_valid_address = nullptr;
+//static void* managed_memory_start = nullptr;
 
 template< typename T>
 class my_list_alloc {
@@ -59,7 +60,6 @@ public:
 	void destroy(T* p) const {
 
 		std::cout << "destroy" << std::endl;
-
 		p->~T();
 	}
 
@@ -67,7 +67,6 @@ public:
 	void construct(T* p, Args&&... args) {
 
 		std::cout << "construct" << std::endl;
-
 		new (p) T(forward<Args>(args)...);
 	}
 
@@ -76,8 +75,8 @@ public:
 		using other = my_list_alloc<U>;
 	};
 private:
-	static T* _begin = nullptr;
-	static T* _end = nullptr;
+	void* ptrTemp = nullptr;
+
 };
 
 template <class T, class U>
@@ -90,27 +89,47 @@ bool operator!=(const my_list_alloc<T>&, const my_list_alloc<U>&) {};
 template<typename T>
 void my_list_alloc<T>::reserve(size_t n)
 {
-	_begin = this->allocate(n);
-	_end = _begin + n;
+	has_initialized = true;
+	//managed_memory_start = this->allocate(n);
+	
+	ptrTemp = allocate(n);
+
+	//last_valid_address = managed_memory_start;
+	//blockCount = n;
+
+	//std::free(managed_memory_start);
 }
 
 template<typename T>
 inline T * my_list_alloc<T>::allocate(std::size_t n)
 {
-
-	if (n == 0) {
+	if (n == 0) 
 		return NULL;
-	}
 	
-	std::cout << "allocate: [n = " << n << "]" << std::endl;
+	auto sz = sizeof(T);
 
-	if (_begin != _end)
-		cout << "False" << endl;
+	//T* endBuffer = (static_cast<T*>(managed_memory_start) + blockCount);
+	//T* last_address = (static_cast<T*>(last_valid_address) + n);
 
-	auto p = std::malloc(n * sizeof(T));
-	if (!p)
-		throw std::bad_alloc();
-	return static_cast<T* >(p);
+	if (ptrTemp != nullptr)
+	{
+		std::cout << "shift pointer: [n = " << n << "]" << std::endl;
+
+		//T* last_valid = static_cast<T*>(last_valid_address);
+		//last_valid_address = last_valid + n;
+
+		return static_cast<T* >(ptrTemp);
+	}
+	else
+	{	
+		std::cout << "allocate: [n = " << n << "]" << std::endl;
+
+		auto p = std::malloc(n * sizeof(T));
+		if (!p)
+			throw std::bad_alloc();
+		return static_cast<T* >(p);
+	}
+
 }
 
 template<typename T>
@@ -118,7 +137,17 @@ inline void my_list_alloc<T>::deallocate(T * p, size_t n)
 {
 	std::cout << "deallocate: [n  = " << n << "] " << std::endl;
 
-	std::free(p);
+	//if (p <= managed_memory_start && has_initialized)
+	//{
+	//	//std::free(managed_memory_start);
+	//	std::free(p);
+	//	has_initialized = false;
+	//}
+	//else
+	//{
+		std::free(p);
+	//}	
+
 }
 
 template<typename T, typename alloc>
@@ -129,4 +158,22 @@ my_list<T, alloc>::my_list()
 template<typename T, typename alloc>
 my_list<T, alloc>::~my_list()
 {
+}
+
+template<typename T, typename alloc>
+T my_list<T, alloc>::getValue(size_t index)
+{
+	return T();
+}
+
+template<typename T, typename alloc>
+bool my_list<T, alloc>::insert(size_t index)
+{
+	return false;
+}
+
+template<typename T, typename alloc>
+bool my_list<T, alloc>::remove(size_t index)
+{
+	return false;
 }
