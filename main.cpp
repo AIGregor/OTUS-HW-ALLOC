@@ -14,7 +14,7 @@
 using namespace std;
 
 template <class K, class V> 
-using a_map = std::map< K, V, std::less<K>, my_list_alloc<std::pair<const K, V>> >;
+using a_map = std::map< K, V, std::less<K>, my_list_alloc< std::_Tree_node<std::pair<int const, int>, void *>> >;
 
 constexpr size_t Fuct(size_t number)
 {
@@ -62,9 +62,9 @@ int main()
 
 	auto m = a_map<int, int>();
 
-	m.get_allocator().reserve(1);
+	m.get_allocator().reserve(5);
 
-	for (int i = 0; i < 1; ++i) {
+	for (int i = 0; i < 5; ++i) {
 		std::cout << "map size = " << m.size() << std::endl;
 
 		m.insert(std::make_pair( i, Fuct(i) ));
@@ -77,4 +77,3 @@ int main()
 
    return 0;
 }
-

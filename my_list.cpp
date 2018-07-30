@@ -28,9 +28,9 @@ private:
 };
 
 static bool has_initialized = false;
-//static size_t blockCount = 0;
-//static void* last_valid_address = nullptr;
-//static void* managed_memory_start = nullptr;
+static size_t blockCount = 0;
+static void* last_valid_address = nullptr;
+static void* managed_memory_start = nullptr;
 
 template< typename T>
 class my_list_alloc {
@@ -90,14 +90,10 @@ template<typename T>
 void my_list_alloc<T>::reserve(size_t n)
 {
 	has_initialized = true;
-	//managed_memory_start = this->allocate(n);
+	managed_memory_start = this->allocate(n);	
 	
-	ptrTemp = allocate(n);
-
-	//last_valid_address = managed_memory_start;
-	//blockCount = n;
-
-	//std::free(managed_memory_start);
+	last_valid_address = managed_memory_start;
+	blockCount = n;
 }
 
 template<typename T>
@@ -108,17 +104,17 @@ inline T * my_list_alloc<T>::allocate(std::size_t n)
 	
 	auto sz = sizeof(T);
 
-	//T* endBuffer = (static_cast<T*>(managed_memory_start) + blockCount);
-	//T* last_address = (static_cast<T*>(last_valid_address) + n);
+	T* endBuffer = (static_cast<T*>(managed_memory_start) + blockCount);
+	T* last_address = (static_cast<T*>(last_valid_address) + n);
 
-	if (ptrTemp != nullptr)
+	if (endBuffer >= last_address)
 	{
 		std::cout << "shift pointer: [n = " << n << "]" << std::endl;
 
-		//T* last_valid = static_cast<T*>(last_valid_address);
-		//last_valid_address = last_valid + n;
+		T* last_valid = static_cast<T*>(last_valid_address);
+		last_valid_address = last_valid + n;
 
-		return static_cast<T* >(ptrTemp);
+		return static_cast<T* >(last_valid);
 	}
 	else
 	{	
@@ -137,16 +133,16 @@ inline void my_list_alloc<T>::deallocate(T * p, size_t n)
 {
 	std::cout << "deallocate: [n  = " << n << "] " << std::endl;
 
-	//if (p <= managed_memory_start && has_initialized)
-	//{
-	//	//std::free(managed_memory_start);
-	//	std::free(p);
-	//	has_initialized = false;
-	//}
-	//else
-	//{
+	if (p > managed_memory_start && p <= last_valid_address && has_initialized)
+	{
+		return;
+	}
+	else 
+	{
 		std::free(p);
-	//}	
+		if (p == managed_memory_start)
+			has_initialized = false;
+	}	
 
 }
 
