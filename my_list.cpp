@@ -8,25 +8,6 @@
 #include "stdafx.h"
 #include <memory>
 
-template <typename T, typename alloc = my_list_alloc<T>>
-class my_list
-{
-public:
-	my_list();
-	~my_list();
-
-	T getValue(size_t index);
-	bool insert(size_t index);
-	bool remove(size_t index);
-
-private:
-	T* ptrNextNode;
-	T* ptrPrevNode;
-
-	T value;
-	alloc my_list_allocator;
-};
-
 static bool has_initialized = false;
 static size_t blockCount = 0;
 static void* last_valid_address = nullptr;
@@ -102,14 +83,12 @@ inline T * my_list_alloc<T>::allocate(std::size_t n)
 	if (n == 0) 
 		return NULL;
 	
-	auto sz = sizeof(T);
-
 	T* endBuffer = (static_cast<T*>(managed_memory_start) + blockCount);
 	T* last_address = (static_cast<T*>(last_valid_address) + n);
 
 	if (endBuffer >= last_address)
 	{
-		std::cout << "shift pointer: [n = " << n << "]" << std::endl;
+		std::cout << "shift alloc: [n = " << n << "]" << std::endl;
 
 		T* last_valid = static_cast<T*>(last_valid_address);
 		last_valid_address = last_valid + n;
@@ -130,46 +109,175 @@ inline T * my_list_alloc<T>::allocate(std::size_t n)
 
 template<typename T>
 inline void my_list_alloc<T>::deallocate(T * p, size_t n)
-{
-	std::cout << "deallocate: [n  = " << n << "] " << std::endl;
-
+{	
 	if (p > managed_memory_start && p <= last_valid_address && has_initialized)
 	{
+		std::cout << "shift dealloc: [n  = " << n << "] " << std::endl;
 		return;
 	}
 	else 
 	{
+		std::cout << "deallocate: [n  = " << n << "] " << std::endl;
 		std::free(p);
 		if (p == managed_memory_start)
+		{
 			has_initialized = false;
-	}	
-
+			managed_memory_start = nullptr;
+			last_valid_address = nullptr;
+		}		
+	}
 }
 
-template<typename T, typename alloc>
-my_list<T, alloc>::my_list()
+/*-----------------------------------------------------------------------------*/
+
+template <typename T>
+struct Node
+{
+	Node();
+	~Node();
+	Node<T>* ptrNextNode = nullptr;
+	Node<T>* ptrPrevNode = nullptr;
+	T value;
+};
+
+template<typename T>
+Node<T>::Node()
 {
 }
 
-template<typename T, typename alloc>
-my_list<T, alloc>::~my_list()
+template<typename T>
+Node<T>::~Node()
 {
 }
 
-template<typename T, typename alloc>
-T my_list<T, alloc>::getValue(size_t index)
+template <typename T, typename Alloc = std::allocator<Node<T>>>
+class my_list
 {
-	return T();
+	using my_node = Node<T>;
+	using my_nodeptr = Node<T>*;
+
+public:
+	my_list();
+	~my_list();
+
+	T& getValue(size_t index);
+	bool insert(const T value);
+	bool remove(size_t index);
+
+	Alloc& getAlloc() { return my_list_allocator; };
+
+	my_nodeptr begin() { return head; };
+	my_nodeptr end() { return NULL; };
+
+	size_t size() { return mSize; }
+
+private:
+	my_nodeptr head;
+	my_nodeptr tail;
+
+	Alloc my_list_allocator;
+	
+	size_t mSize;
+
+	my_nodeptr createNode()
+	{
+		my_nodeptr newNode = getAlloc().allocate(1);
+
+		try
+		{
+			getAlloc().construct(&newNode->ptrNextNode, newNode);
+			getAlloc().construct(&newNode->ptrPrevNode, newNode);
+		}
+		catch (...)
+		{
+			getAlloc().deallocate(newNode, 1);
+		}
+
+		return newNode;
+	};
+
+
+};
+
+template<typename T, typename Alloc>
+my_list<T, Alloc>::my_list() : mSize(0), tail(nullptr)
+{
+	head = createNode();
 }
 
-template<typename T, typename alloc>
-bool my_list<T, alloc>::insert(size_t index)
+template<typename T, typename Alloc>
+my_list<T, Alloc>::~my_list()
 {
-	return false;
 }
 
-template<typename T, typename alloc>
-bool my_list<T, alloc>::remove(size_t index)
+template<typename T, typename Alloc>
+T& my_list<T, Alloc>::getValue(size_t index)
 {
-	return false;
+	my_node* ptrNext = head;
+	size_t szIndex = 0;
+	while (ptrNext->ptrNextNode != nullptr && szIndex <= index)
+	{
+		ptrNext = static_cast<my_node*>(ptrNext->ptrNextNode);
+		++szIndex;
+	}
+
+	return ptrNext->value;
 }
+
+template<typename T, typename Alloc>
+bool my_list<T, Alloc>::insert(const T value)
+{
+	try 
+	{
+		my_node* ptrNext = head;
+		while (ptrNext->ptrNextNode != ptrNext && ptrNext->ptrNextNode != NULL)
+		{
+			ptrNext = static_cast<my_node*>(ptrNext->ptrNextNode);
+		}
+		my_nodeptr ptrNewNode = createNode();
+		ptrNext->ptrNextNode = ptrNewNode;
+
+		ptrNewNode->ptrPrevNode = ptrNext;
+		ptrNewNode->ptrNextNode = nullptr;
+
+		ptrNewNode->value = value;
+		++mSize;
+	}
+	catch (...)
+	{
+		return false;
+	}
+	
+	return true;
+}
+
+template<typename T, typename Alloc>
+bool my_list<T, Alloc>::remove(size_t index)
+{
+	try
+	{
+		Node* ptrNext = head;
+		size_t szIndex = 0;
+		while (ptrNext->ptrNextNode != nullptr || szIndex != index)
+		{
+			ptrNext = static_cast<Node*>(ptrNext->ptrNextNode);
+			++szIndex;
+		}
+		Node* ptrPrevNode = static_cast<Node*>(ptrNext->ptrPrevNode);
+		ptrPrevNode->ptrNextNode = ptrNext->ptrNextNode;
+
+		Node* ptrNextNode = static_cast<Node*>(ptrNext->ptrNextNode);
+		ptrNextNode->ptrPrevNode = ptrNext->ptrPrevNode;
+				
+		delete ptrNewNode;
+		--mSize;
+	}
+	catch (...)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+

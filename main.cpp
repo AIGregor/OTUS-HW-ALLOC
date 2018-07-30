@@ -7,9 +7,10 @@
 #include <iostream>
 
 #include "my_list.cpp"
+#include <list>
 
 #define ONE
-#define VEC
+//#define VEC
 
 using namespace std;
 
@@ -23,57 +24,55 @@ constexpr size_t Fuct(size_t number)
 
 int main()
 {
-
-#ifndef VEC
-
-	auto v = std::vector< int, my_list_alloc<int> >();
-	v.reserve(10);
-
-	for (int i = 0; i < 5; ++i) {
-		std::cout << "vector size = " << v.size() << std::endl;
-		v.emplace_back(i);
-		std::cout << std::endl;
-	}
-
-	for (auto i : v) {
-		std::cout << i << std::endl;
-	}
-
-#endif // !VEC
+	//std::list<int> list = { 0,1,2 };
+	//list.push_back(12);
 
 #ifndef ONE 
 	
-	auto std_m = std::map<int, int>();
+	auto std_map = std::map<int, int>();
 	
-	for (int i = 0; i < 5; ++i) {
-		std::cout << "map size = " << std_m.size() << std::endl;
+	for (int i = 0; i < 10; ++i) {
+		std::cout << "map size = " << std_map.size() << std::endl;
 		
-		std_m.insert(std::make_pair(i, i*i));
+		std_map.insert(std::make_pair(i, i*i));
 		std::cout << std::endl;
 	}
 
-	for (auto i : std_m) {
-		std::cout << i.first << "-" << i.second << std::endl;
-	}
 
-#endif // !BOTH
 
 	cout << "--------------------------------------" << endl;
 
-	auto m = a_map<int, int>();
-
-	m.get_allocator().reserve(5);
+	auto my_map = a_map<int, int>();
+	my_map.get_allocator().reserve(10);
 
 	for (int i = 0; i < 5; ++i) {
-		std::cout << "map size = " << m.size() << std::endl;
+		std::cout << "map size = " << my_map.size() << std::endl;
 
-		m.insert(std::make_pair( i, Fuct(i) ));
+		my_map.insert(std::make_pair( i, Fuct(i) ));
 		std::cout << std::endl;
 	}
 
-	for (auto i : m) {
-		std::cout << i.first << "-" << i.second << std::endl;
+	for (auto i : my_map) {
+		std::cout << i.first << " " << i.second << std::endl;
 	}
 
-   return 0;
+#endif // !ONE
+
+	cout << "--------------------------------------" << endl;
+
+	my_list<int> myList;
+
+	for (int i = 0; i < 5; ++i) {
+		
+		myList.insert(i);
+		std::cout << std::endl;
+	}
+
+	size_t i = 0;
+	while (i < myList.size()) {
+		std::cout << myList.getValue(i) << std::endl;
+		++i;
+	}
+	
+	return 0;
 }
