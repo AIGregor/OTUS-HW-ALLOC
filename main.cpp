@@ -60,7 +60,8 @@ int main()
 
 	cout << "--------------------------------------" << endl;
 
-	my_list<int> myList;
+	my_list<int, my_list_alloc<Node<int>>> myList;
+	myList.getAlloc().reserve(5);
 
 	for (int i = 0; i < 5; ++i) {
 		

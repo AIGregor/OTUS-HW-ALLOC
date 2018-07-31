@@ -196,7 +196,8 @@ private:
 		return newNode;
 	};
 
-
+	void clearAll();
+	void freeNode(my_nodeptr node);
 };
 
 template<typename T, typename Alloc>
@@ -208,6 +209,8 @@ my_list<T, Alloc>::my_list() : mSize(0), tail(nullptr)
 template<typename T, typename Alloc>
 my_list<T, Alloc>::~my_list()
 {
+	// TODO: Расписать удаление элементов списка и освобождение памяти.
+	clearAll();
 }
 
 template<typename T, typename Alloc>
@@ -256,20 +259,20 @@ bool my_list<T, Alloc>::remove(size_t index)
 {
 	try
 	{
-		Node* ptrNext = head;
+		my_nodeptr ptrNext = head;
 		size_t szIndex = 0;
 		while (ptrNext->ptrNextNode != nullptr || szIndex != index)
 		{
-			ptrNext = static_cast<Node*>(ptrNext->ptrNextNode);
+			ptrNext = static_cast<my_nodeptr>(ptrNext->ptrNextNode);
 			++szIndex;
 		}
-		Node* ptrPrevNode = static_cast<Node*>(ptrNext->ptrPrevNode);
+		my_nodeptr ptrPrevNode = static_cast<my_nodeptr>(ptrNext->ptrPrevNode);
 		ptrPrevNode->ptrNextNode = ptrNext->ptrNextNode;
 
-		Node* ptrNextNode = static_cast<Node*>(ptrNext->ptrNextNode);
+		my_nodeptr ptrNextNode = static_cast<my_nodeptr>(ptrNext->ptrNextNode);
 		ptrNextNode->ptrPrevNode = ptrNext->ptrPrevNode;
 				
-		delete ptrNewNode;
+		//delete ptrNewNode;
 		--mSize;
 	}
 	catch (...)
@@ -278,6 +281,33 @@ bool my_list<T, Alloc>::remove(size_t index)
 	}
 
 	return true;
+}
+
+template<typename T, typename Alloc>
+void my_list<T, Alloc>::clearAll()
+{
+	mSize = 0;
+	my_nodeptr ptrNext = head;
+
+	while (ptrNext->ptrNextNode != nullptr)
+	{
+		 
+		my_nodeptr ptrNextNode = static_cast<my_nodeptr>(ptrNext->ptrNextNode);
+		freeNode(ptrNext);
+		ptrNext = ptrNextNode;
+	}
+
+	//freeNode(head);
+}
+
+template<typename T, typename Alloc>
+void my_list<T, Alloc>::freeNode(my_nodeptr node)
+{
+	getAlloc().destroy(node->ptrNextNode);
+	getAlloc().destroy(node->ptrPrevNode);
+	getAlloc().destroy(node);
+
+	getAlloc().deallocate(node, 1);
 }
 
 
