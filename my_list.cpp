@@ -8,6 +8,10 @@
 #include "stdafx.h"
 #include <memory>
 
+/*-----------------------------------------------------------------------------*/
+/*
+	Аллокатор с выделением памяти
+*/
 static bool has_initialized = false;
 static size_t blockCount = 0;
 static void* last_valid_address = nullptr;
@@ -39,15 +43,13 @@ public:
 	void deallocate(T* p, size_t n);
 
 	void destroy(T* p) const {
-
-		std::cout << "destroy" << std::endl;
+		//std::cout << "destroy" << std::endl;
 		p->~T();
 	}
 
 	template<class T, class... Args>
 	void construct(T* p, Args&&... args) {
-
-		std::cout << "construct" << std::endl;
+		//std::cout << "construct" << std::endl;
 		new (p) T(forward<Args>(args)...);
 	}
 
@@ -88,8 +90,7 @@ inline T * my_list_alloc<T>::allocate(std::size_t n)
 
 	if (endBuffer >= last_address)
 	{
-		std::cout << "shift alloc: [n = " << n << "]" << std::endl;
-
+		//std::cout << "shift alloc: [n = " << n << "]" << std::endl;
 		T* last_valid = static_cast<T*>(last_valid_address);
 		last_valid_address = last_valid + n;
 
@@ -97,8 +98,7 @@ inline T * my_list_alloc<T>::allocate(std::size_t n)
 	}
 	else
 	{	
-		std::cout << "allocate: [n = " << n << "]" << std::endl;
-
+		//std::cout << "allocate: [n = " << n << "]" << std::endl;
 		auto p = std::malloc(n * sizeof(T));
 		if (!p)
 			throw std::bad_alloc();
@@ -112,12 +112,12 @@ inline void my_list_alloc<T>::deallocate(T * p, size_t n)
 {	
 	if (p > managed_memory_start && p <= last_valid_address && has_initialized)
 	{
-		std::cout << "shift dealloc: [n  = " << n << "] " << std::endl;
+		//std::cout << "shift dealloc: [n  = " << n << "] " << std::endl;
 		return;
 	}
 	else 
 	{
-		std::cout << "deallocate: [n  = " << n << "] " << std::endl;
+		//std::cout << "deallocate: [n  = " << n << "] " << std::endl;
 		std::free(p);
 		if (p == managed_memory_start)
 		{
@@ -129,7 +129,9 @@ inline void my_list_alloc<T>::deallocate(T * p, size_t n)
 }
 
 /*-----------------------------------------------------------------------------*/
-
+/*
+	Вспомогательный класс узлов списка
+*/
 template <typename T>
 struct Node
 {
@@ -150,6 +152,10 @@ Node<T>::~Node()
 {
 }
 
+/*-----------------------------------------------------------------------------*/
+/*
+	Самописный контейнер - двунаправленный список
+*/
 template <typename T, typename Alloc = std::allocator<Node<T>>>
 class my_list
 {
@@ -200,6 +206,7 @@ private:
 	void freeNode(my_nodeptr node);
 
 	void incSize() { ++mSize; };
+	void decSize() { --mSize; };
 	void setTail(my_nodeptr node) { tail = node; };
 	void setHead(my_nodeptr node) { head = node; };
 };
@@ -277,9 +284,8 @@ bool my_list<T, Alloc>::remove(size_t index)
 
 		my_nodeptr ptrNextNode = static_cast<my_nodeptr>(ptrNext->ptrNextNode);
 		ptrNextNode->ptrPrevNode = ptrNext->ptrPrevNode;
-				
-		//delete ptrNewNode;
-		--mSize;
+
+		decSize();
 	}
 	catch (...)
 	{

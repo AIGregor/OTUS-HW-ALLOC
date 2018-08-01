@@ -7,10 +7,9 @@
 #include <iostream>
 
 #include "my_list.cpp"
-#include <list>
 
-#define ONE
-//#define VEC
+//#define MAP
+#define M_LIST
 
 using namespace std;
 
@@ -22,58 +21,66 @@ constexpr size_t Fuct(size_t number)
 	return number > 0 ? Fuct(number-1) * number : 1;
 }
 
+template<class K, class V, class C = std::less<K>, class Al = std::allocator<K>>
+void generate(std::map<K, V, C, Al>& target, size_t range)
+{
+	for (size_t i = 0; i < range; ++i) {
+		// std::cout << "map size = " << target.size() << std::endl;
+		target.insert(std::make_pair(i, Fuct(i)));
+	}
+}
+
+template<class T, class Al = std::allocator<Node<T>>>
+void generate(my_list<T, Al>& target, size_t range)
+{
+	for (size_t i = 0; i < range; ++i) {
+		// std::cout << "map size = " << target.size() << std::endl;
+		target.insert(i);
+	}
+}
+
 int main()
 {
-	//std::list<int> list = { 0,1,2 };
-	//list.push_back(12);
 
-#ifndef ONE 
+#ifdef MAP 
 	
+	// Standart map with standart allocator
 	auto std_map = std::map<int, int>();
-	
-	for (int i = 0; i < 10; ++i) {
-		std::cout << "map size = " << std_map.size() << std::endl;
-		
-		std_map.insert(std::make_pair(i, i*i));
-		std::cout << std::endl;
-	}
+	generate(std_map, 10);
 
-
-
-	cout << "--------------------------------------" << endl;
-
+	// Stasndart map with my allocator and reservation 10 items
 	auto my_map = a_map<int, int>();
 	my_map.get_allocator().reserve(10);
 
-	for (int i = 0; i < 5; ++i) {
-		std::cout << "map size = " << my_map.size() << std::endl;
+	// Fill map
+	generate(my_map, 10);
 
-		my_map.insert(std::make_pair( i, Fuct(i) ));
-		std::cout << std::endl;
-	}
-
+	// Print map
 	for (auto i : my_map) {
 		std::cout << i.first << " " << i.second << std::endl;
 	}
 
-#endif // !ONE
+#endif // !MAP
 
-	cout << "--------------------------------------" << endl;
+#ifdef M_LIST
 
-	my_list<int, my_list_alloc<Node<int>>> myList;
-	myList.getAlloc().reserve(10);
+	// My list with standart allocator
+	my_list<int> std_my_list;
+	generate(std_my_list, 10);
+	
+	// My list with my allocator and reservation 10 items
+	my_list<int, my_list_alloc<Node<int>>> my_list_alloc;
+	my_list_alloc.getAlloc().reserve(10);
+	generate(my_list_alloc, 10);
 
-	for (int i = 0; i < 12; ++i) {
-		
-		myList.insert(Fuct(i));
-		std::cout << std::endl;
-	}
-
+	// Print list
 	size_t i = 0;
-	while (i < myList.size()) {
-		std::cout << myList.getValue(i) << std::endl;
+	while (i < my_list_alloc.size()) {
+		std::cout << my_list_alloc.getValue(i) << std::endl;
 		++i;
 	}
-	
+
+#endif // !M_LIST
+
 	return 0;
 }
