@@ -198,12 +198,16 @@ private:
 
 	void clearAll();
 	void freeNode(my_nodeptr node);
+
+	void incSize() { ++mSize; };
+	void setTail(my_nodeptr node) { tail = node; };
+	void setHead(my_nodeptr node) { head = node; };
 };
 
 template<typename T, typename Alloc>
 my_list<T, Alloc>::my_list() : mSize(0), tail(nullptr)
 {
-	head = createNode();
+	setHead( createNode() );
 }
 
 template<typename T, typename Alloc>
@@ -244,7 +248,9 @@ bool my_list<T, Alloc>::insert(const T value)
 		ptrNewNode->ptrNextNode = nullptr;
 
 		ptrNewNode->value = value;
-		++mSize;
+
+		setTail(ptrNewNode);
+		incSize();
 	}
 	catch (...)
 	{
@@ -287,17 +293,16 @@ template<typename T, typename Alloc>
 void my_list<T, Alloc>::clearAll()
 {
 	mSize = 0;
-	my_nodeptr ptrNext = head;
+	my_nodeptr ptrPrev = tail;
 
-	while (ptrNext->ptrNextNode != nullptr)
-	{
-		 
-		my_nodeptr ptrNextNode = static_cast<my_nodeptr>(ptrNext->ptrNextNode);
-		freeNode(ptrNext);
-		ptrNext = ptrNextNode;
+	while (ptrPrev != ptrPrev->ptrPrevNode)
+	{		 
+		my_nodeptr ptrPrevNode = static_cast<my_nodeptr>(ptrPrev->ptrPrevNode);
+		freeNode(ptrPrev);
+		ptrPrev = ptrPrevNode;
 	}
 
-	//freeNode(head);
+	freeNode(head);
 }
 
 template<typename T, typename Alloc>

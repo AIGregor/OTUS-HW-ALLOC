@@ -61,11 +61,11 @@ int main()
 	cout << "--------------------------------------" << endl;
 
 	my_list<int, my_list_alloc<Node<int>>> myList;
-	myList.getAlloc().reserve(5);
+	myList.getAlloc().reserve(10);
 
-	for (int i = 0; i < 5; ++i) {
+	for (int i = 0; i < 12; ++i) {
 		
-		myList.insert(i);
+		myList.insert(Fuct(i));
 		std::cout << std::endl;
 	}
 
