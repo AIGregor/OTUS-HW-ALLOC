@@ -12,10 +12,10 @@
 /*
 	Аллокатор с выделением памяти
 */
-static bool has_initialized = false;
-static size_t blockCount = 0;
-static void* last_valid_address = nullptr;
-static void* managed_memory_start = nullptr;
+//static bool has_initialized = false;
+//static size_t blockCount = 0;
+//static void* last_valid_address = nullptr;
+//static void* managed_memory_start = nullptr;
 
 template< typename T>
 class my_list_alloc {
@@ -60,6 +60,10 @@ public:
 private:
 	void* ptrTemp = nullptr;
 
+	bool has_initialized = false;
+	size_t blockCount = 0;
+	void* last_valid_address = nullptr;
+	void* managed_memory_start = nullptr;
 };
 
 template <class T, class U>

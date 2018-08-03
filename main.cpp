@@ -8,7 +8,7 @@
 
 #include "my_list.cpp"
 
-//#define MAP
+#define MAP
 #define M_LIST
 
 using namespace std;
