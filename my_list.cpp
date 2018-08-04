@@ -5,17 +5,12 @@
 - добавить новый элемент и обойти контейнер в одном направлении.
 Совместимость с контейнерами stl на усмотрение автора.
 */
-#include "stdafx.h"
 #include <memory>
 
 /*-----------------------------------------------------------------------------*/
 /*
 	Аллокатор с выделением памяти
 */
-//static bool has_initialized = false;
-//static size_t blockCount = 0;
-//static void* last_valid_address = nullptr;
-//static void* managed_memory_start = nullptr;
 
 template< typename T>
 class my_list_alloc {
@@ -60,11 +55,17 @@ public:
 private:
 	void* ptrTemp = nullptr;
 
-	bool has_initialized = false;
-	size_t blockCount = 0;
-	void* last_valid_address = nullptr;
-	void* managed_memory_start = nullptr;
+	static size_t blockCount;	
+	static bool has_initialized;	
+	static void* last_valid_address;
+	static void* managed_memory_start;
 };
+
+template<typename T> size_t my_list_alloc<T>::blockCount = 0;
+template<typename T> bool  my_list_alloc<T>::has_initialized = false;
+template<typename T> void* my_list_alloc<T>::last_valid_address = nullptr;
+template<typename T> void* my_list_alloc<T>::managed_memory_start = nullptr;
+
 
 template <class T, class U>
 bool operator==(const my_list_alloc<T>& t, const my_list_alloc<U>& u) {};
