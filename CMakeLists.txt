@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.2)
 
 project(hw-alloc VERSION 0.0.1)
 
-add_executable(hw-alloc_cli main.cpp my_list.cpp)
+add_executable(hw-alloc_cli main.cpp)
 
 install(TARGETS hw-alloc_cli RUNTIME DESTINATION bin)
 
