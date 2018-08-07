@@ -1,0 +1,11 @@
+language: cpp
+script:
+  - cmake .
+  - cmake --build .
+  - cmake --build . --target package
+deploy:
+  provider: script
+  skip_cleanup: true
+  script:
+  - curl -T allocator.deb
+  -uaigregor:$BINTRAY_API_KEY "https://api.bintray.com/content/aigregor/OTUS_HW_Alloc/OTUS_HW_Alloc/$TRAVIS_BUILD_NUMBER/allocator.deb;deb_distribution=trusty;deb_component=main;deb_architecture=amd64;publish=1"
