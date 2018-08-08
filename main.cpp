@@ -1,29 +1,20 @@
-// alloc.cpp : Defines the entry point for the console application.
-//
-
-#include <map>
+п»ї#include <map>
 #include <vector>
 #include <iostream>
 
 #define MAP
 #define M_LIST
 
-/*
-Реализовать свой контейнер, который по аналогии с контейнерами stl
-параметризуется аллокатором. Контейнер должен иметь две возможности
-- добавить новый элемент и обойти контейнер в одном направлении.
-Совместимость с контейнерами stl на усмотрение автора.
-*/
 #include <memory>
 
 using namespace std;
 
 /*-----------------------------------------------------------------------------*/
 /*
-Аллокатор с выделением памяти
+	Allocator class
 */
 
-template< typename T>
+template<typename T>
 class my_list_alloc {
 public:
 	using value_type = T;
@@ -53,10 +44,10 @@ public:
 		p->~T();
 	}
 
-	template<class T, class... Args>
-	void construct(T* p, Args&&... args) {
+	template<class TT, class... Args>
+	void construct(TT* p, Args&&... args) {
 		//std::cout << "construct" << std::endl;
-		new (p) T(forward<Args>(args)...);
+		new (p) TT(forward<Args>(args)...);
 	}
 
 	template<class U>
@@ -78,15 +69,15 @@ template<typename T> void* my_list_alloc<T>::last_valid_address = nullptr;
 template<typename T> void* my_list_alloc<T>::managed_memory_start = nullptr;
 
 
-template <class T, class U>
-bool operator==(const my_list_alloc<T>& t, const my_list_alloc<U>& u) {};
+//template <class TT, class U>
+//bool operator==(const my_list_alloc<TT>& T, const my_list_alloc<U>& u) {};
 
-template <class T, class U>
-bool operator!=(const my_list_alloc<T>&, const my_list_alloc<U>&) {};
+//template <class TT, class U>
+//bool operator!=(const my_list_alloc<TT>&, const my_list_alloc<U>&) {};
 
 
-template<typename T>
-void my_list_alloc<T>::reserve(size_t n)
+template<typename TT>
+void my_list_alloc<TT>::reserve(size_t n)
 {
 	has_initialized = true;
 	managed_memory_start = this->allocate(n);
@@ -96,7 +87,7 @@ void my_list_alloc<T>::reserve(size_t n)
 }
 
 template<typename T>
-inline T * my_list_alloc<T>::allocate(std::size_t n)
+inline T* my_list_alloc<T>::allocate(std::size_t n)
 {
 	if (n == 0)
 		return NULL;
@@ -146,7 +137,7 @@ inline void my_list_alloc<T>::deallocate(T * p, size_t n)
 
 /*-----------------------------------------------------------------------------*/
 /*
-Вспомогательный класс узлов списка
+	My list class
 */
 template <typename T>
 struct Node
@@ -170,7 +161,7 @@ Node<T>::~Node()
 
 /*-----------------------------------------------------------------------------*/
 /*
-Самописный контейнер - двунаправленный список
+Г‘Г Г¬Г®ГЇГЁГ±Г­Г»Г© ГЄГ®Г­ГІГҐГ©Г­ГҐГ° - Г¤ГўГіГ­Г ГЇГ°Г ГўГ«ГҐГ­Г­Г»Г© Г±ГЇГЁГ±Г®ГЄ
 */
 template <typename T, typename Alloc = std::allocator<Node<T>>>
 class my_list
@@ -236,7 +227,7 @@ my_list<T, Alloc>::my_list() : mSize(0), tail(nullptr)
 template<typename T, typename Alloc>
 my_list<T, Alloc>::~my_list()
 {
-	// TODO: Расписать удаление элементов списка и освобождение памяти.
+	// TODO: ГђГ Г±ГЇГЁГ±Г ГІГј ГіГ¤Г Г«ГҐГ­ГЁГҐ ГЅГ«ГҐГ¬ГҐГ­ГІГ®Гў Г±ГЇГЁГ±ГЄГ  ГЁ Г®Г±ГўГ®ГЎГ®Г¦Г¤ГҐГ­ГЁГҐ ГЇГ Г¬ГїГІГЁ.
 	clearAll();
 }
 
@@ -338,12 +329,12 @@ void my_list<T, Alloc>::freeNode(my_nodeptr node)
 }
 
 
-template <class K, class V> 
-using a_map = std::map< K, V, std::less<K>, my_list_alloc< std::_Tree_node<std::pair<int const, int>, void *>> >;
+template <class K, class V>
+using a_map = std::map< K, V, std::less<K>, my_list_alloc< std::pair<int const, int> > >;
 
 constexpr size_t Fuct(size_t number)
 {
-	return number > 0 ? Fuct(number-1) * number : 1;
+	return number > 0 ? Fuct(number - 1) * number : 1;
 }
 
 template<class K, class V, class C = std::less<K>, class Al = std::allocator<K>>
@@ -368,7 +359,7 @@ int main()
 {
 
 #ifdef MAP 
-	
+
 	// Standart map with standart allocator
 	auto std_map = std::map<int, int>();
 	generate(std_map, 10);
@@ -392,7 +383,7 @@ int main()
 	// My list with standart allocator
 	my_list<int> std_my_list;
 	generate(std_my_list, 10);
-	
+
 	// My list with my allocator and reservation 10 items
 	my_list<int, my_list_alloc<Node<int>>> my_list_alloc;
 	my_list_alloc.getAlloc().reserve(10);
