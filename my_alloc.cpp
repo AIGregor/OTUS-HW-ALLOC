@@ -78,10 +78,10 @@ void my_list_alloc<TT>::reserve(size_t n)
 }
 
 template<typename T>
-inline T * my_list_alloc<T>::allocate(std::size_t n)
+inline T* my_list_alloc<T>::allocate(std::size_t n)
 {
 	if (n == 0)
-		return NULL;
+		return nullptr;
 
 	T* endBuffer = (static_cast<T*>(managed_memory_start) + blockCount);
 	T* last_address = (static_cast<T*>(last_valid_address) + n);
