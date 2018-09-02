@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.2)
 
 project(hw-alloc VERSION 0.0.1)
 
-add_executable(hw-alloc_cli main.cpp)
+add_executable(hw-alloc_cli main.cpp my_list.cpp my_alloc.cpp)
 
 set_target_properties(hw-alloc_cli PROPERTIES
   CXX_STANDARD 14
