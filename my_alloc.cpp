@@ -37,10 +37,10 @@ public:
 		p->~T();
 	}
 
-	template<class T, class... Args>
-	void construct(T* p, Args&&... args) {
+	template<class TT, class... Args>
+	void construct(TT* p, Args&&... args) {
 		//std::cout << "construct" << std::endl;
-		new (p) T(forward<Args>(args)...);
+		new (p) TT(forward<Args>(args)...);
 	}
 
 	template<class U>
@@ -56,15 +56,15 @@ private:
 	void* managed_memory_start = nullptr;
 };
 
-template <class T, class U>
-bool operator==(const my_list_alloc<T>& t, const my_list_alloc<U>& u) {};
+//template <class T, class U>
+//bool operator==(const my_list_alloc<T>& t, const my_list_alloc<U>& u) {};
 
-template <class T, class U>
-bool operator!=(const my_list_alloc<T>&, const my_list_alloc<U>&) {};
+//template <class T, class U>
+//bool operator!=(const my_list_alloc<T>&, const my_list_alloc<U>&) {};
 
 
-template<typename T>
-void my_list_alloc<T>::reserve(size_t n)
+template<typename TT>
+void my_list_alloc<TT>::reserve(size_t n)
 {
 	// reserve() only one time.
 	if (has_initialized)
