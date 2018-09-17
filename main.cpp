@@ -9,7 +9,7 @@
 #include "my_alloc.cpp"
 
 #define MAP
-//#define M_LIST
+#define M_LIST
 
 template <class K, class V> 
 using a_map = std::map< K, V, std::less<K>, my_list_alloc< std::pair<int const, int> > >;
